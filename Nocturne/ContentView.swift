@@ -107,10 +107,11 @@ struct ContentView: View {
     @State private var glowOn = false
     @State private var logLines: [String] = []
     @State private var logIndex = 0
+    @State private var isJailbreaking = false
+    @State private var jailbreakComplete = false
+    @State private var isRespringing = false
 
     @Environment(\.horizontalSizeClass) private var sizeClass
-
-    private let logTimer = Timer.publish(every: 1.2, on: .main, in: .common).autoconnect()
 
     private var theme: AppTheme {
         themes.first { $0.id == themeID } ?? themes[0]
@@ -162,6 +163,7 @@ struct ContentView: View {
             .padding(20)
             .frame(maxWidth: maxWidth)
         }
+        .opacity(isRespringing ? 0.05 : 1)
         .foregroundColor(Color(hex: theme.text))
         .sheet(isPresented: $showSheet) {
             SettingsSheet(
@@ -183,16 +185,6 @@ struct ContentView: View {
 
             withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
                 glowOn = true
-            }
-        }
-        .onReceive(logTimer) { _ in
-            guard verbose else { return }
-
-            logLines.append("> " + bootLines[logIndex % bootLines.count])
-            logIndex += 1
-
-            if logLines.count > 4 {
-                logLines.removeFirst()
             }
         }
     }
@@ -325,26 +317,80 @@ struct ContentView: View {
 
     private var jailbreakButton: some View {
         Button {
-            // Jailbreak action goes here.
+            if jailbreakComplete {
+                performRespring()
+            } else if !isJailbreaking {
+                startJailbreak()
+            }
         } label: {
-            Text("Jailbreak")
-                .font(.system(size: 22, weight: .bold))
-                .foregroundColor(Color(hex: style.jbText))
-                .frame(maxWidth: .infinity)
-                .frame(height: 66)
-                .background {
-                    RoundedRectangle(cornerRadius: style.radius)
-                        .fill(
-                            style.jbFill.map { Color(hex: $0) } ?? Color.clear
-                        )
+            Text(
+                jailbreakComplete
+                ? "Respring"
+                : (isJailbreaking ? "Jailbreaking..." : "Jailbreak")
+            )
+            .font(.system(size: 22, weight: .bold))
+            .foregroundColor(Color(hex: style.jbText))
+            .frame(maxWidth: .infinity)
+            .frame(height: 66)
+            .background {
+                RoundedRectangle(cornerRadius: style.radius)
+                    .fill(
+                        style.jbFill.map { Color(hex: $0) } ?? Color.clear
+                    )
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: style.radius)
+                    .stroke(
+                        Color(hex: style.jbBorder ?? "#000000"),
+                        lineWidth: style.jbBorder == nil ? 0 : 1
+                    )
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(isJailbreaking || isRespringing)
+    }
+
+    private func startJailbreak() {
+        guard !isJailbreaking else { return }
+
+        isJailbreaking = true
+        jailbreakComplete = false
+        logLines = []
+        logIndex = 0
+
+        Task { @MainActor in
+            for line in bootLines {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+                logLines.append("> " + line)
+                logIndex += 1
+
+                if logLines.count > 4 {
+                    logLines.removeFirst()
                 }
-                .overlay {
-                    RoundedRectangle(cornerRadius: style.radius)
-                        .stroke(
-                            Color(hex: style.jbBorder ?? "#000000"),
-                            lineWidth: style.jbBorder == nil ? 0 : 1
-                        )
-                }
+            }
+
+            isJailbreaking = false
+            jailbreakComplete = true
+        }
+    }
+
+    private func performRespring() {
+        guard !isRespringing else { return }
+
+        withAnimation(.easeInOut(duration: 0.35)) {
+            isRespringing = true
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 900_000_000)
+
+            logLines = []
+            logIndex = 0
+
+            withAnimation(.easeInOut(duration: 0.45)) {
+                isRespringing = false
+            }
         }
     }
 
@@ -359,6 +405,9 @@ struct ContentView: View {
         firstRunDone = false
         logLines = []
         logIndex = 0
+        isJailbreaking = false
+        jailbreakComplete = false
+        isRespringing = false
         showSheet = true
     }
 }
