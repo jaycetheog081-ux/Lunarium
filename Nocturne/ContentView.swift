@@ -51,11 +51,11 @@ let themes: [AppTheme] = [
 struct ButtonStyleOption: Identifiable {
     let id: String
     let name: String
-    let fill: String?        // nil = transparent
+    let fill: String?
     let text: String
     let border: String?
     let radius: CGFloat
-    let grouped: Bool        // true = one card with dividers
+    let grouped: Bool
     let jbFill: String?
     let jbText: String
     let jbBorder: String?
@@ -81,6 +81,7 @@ let buttonStyles: [ButtonStyleOption] = [
 ]
 
 let menuItems = ["Settings", "Restart Springboard", "Reboot Userspace", "Credits"]
+
 let bootLines = [
     "[boot] loading kernel hooks",
     "[boot] checking rootFS",
@@ -106,17 +107,28 @@ struct ContentView: View {
     @State private var glowOn = false
     @State private var logLines: [String] = []
     @State private var logIndex = 0
+
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private let logTimer = Timer.publish(every: 1.2, on: .main, in: .common).autoconnect()
 
-    private var theme: AppTheme { themes.first { $0.id == themeID } ?? themes[0] }
-    private var style: ButtonStyleOption { buttonStyles.first { $0.id == buttonID } ?? buttonStyles[0] }
-    private var maxWidth: CGFloat { (device == "ipad" || sizeClass == .regular) ? 640 : 420 }
+    private var theme: AppTheme {
+        themes.first { $0.id == themeID } ?? themes[0]
+    }
+
+    private var style: ButtonStyleOption {
+        buttonStyles.first { $0.id == buttonID } ?? buttonStyles[0]
+    }
+
+    private var maxWidth: CGFloat {
+        (device == "ipad" || sizeClass == .regular) ? 640 : 420
+    }
 
     var body: some View {
         ZStack {
-            Color(hex: theme.bg).ignoresSafeArea()
+            Color(hex: theme.bg)
+                .ignoresSafeArea()
+
             Circle()
                 .fill(Color(hex: theme.glow))
                 .frame(width: 420, height: 420)
@@ -168,19 +180,23 @@ struct ContentView: View {
                 showSheet = true
                 firstRunDone = true
             }
+
             withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
                 glowOn = true
             }
         }
         .onReceive(logTimer) { _ in
             guard verbose else { return }
+
             logLines.append("> " + bootLines[logIndex % bootLines.count])
             logIndex += 1
-            if logLines.count > 4 { logLines.removeFirst() }
+
+            if logLines.count > 4 {
+                logLines.removeFirst()
+            }
         }
     }
 
-    // Logo, or the picked boot logo photo
     private var header: some View {
         VStack(spacing: 4) {
             if let image = UIImage(data: logoData) {
@@ -188,14 +204,22 @@ struct ContentView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(maxWidth: 200, maxHeight: 90)
-                    .onTapGesture { showSheet = true }
+                    .onTapGesture {
+                        showSheet = true
+                    }
             } else {
                 Text("NOCTURNE")
                     .font(.system(size: 40, weight: bold ? .black : .bold))
                     .tracking(2)
-                    .shadow(color: Color(hex: theme.accent).opacity(0.8), radius: glowOn ? 18 : 6)
-                    .onTapGesture { showSheet = true }
+                    .shadow(
+                        color: Color(hex: theme.accent).opacity(0.8),
+                        radius: glowOn ? 18 : 6
+                    )
+                    .onTapGesture {
+                        showSheet = true
+                    }
             }
+
             Text("Device ready")
                 .font(.footnote)
                 .foregroundColor(Color(hex: theme.text).opacity(0.6))
@@ -210,7 +234,9 @@ struct ContentView: View {
         VStack(spacing: style.grouped ? 0 : 10) {
             ForEach(visibleItems, id: \.self) { item in
                 Button {
-                    if item == "Settings" { showSheet = true }
+                    if item == "Settings" {
+                        showSheet = true
+                    }
                 } label: {
                     HStack {
                         Text(item)
@@ -222,34 +248,43 @@ struct ContentView: View {
                     .foregroundColor(Color(hex: style.text))
                     .padding(.horizontal, 18)
                     .frame(height: 56)
-                    .background(
-                        style.grouped
-                            ? Color.clear
-                            : rowFill
-                    )
-                    .overlay(
+                    .background(style.grouped ? Color.clear : rowFill)
+                    .overlay {
                         RoundedRectangle(cornerRadius: style.radius)
-                            .stroke(Color(hex: style.border ?? "#000000"), lineWidth: style.grouped || style.border == nil ? 0 : 1)
+                            .stroke(
+                                Color(hex: style.border ?? "#000000"),
+                                lineWidth: style.grouped || style.border == nil ? 0 : 1
+                            )
+                    }
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: style.grouped ? 0 : style.radius
+                        )
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: style.grouped ? 0 : style.radius))
                 }
                 .buttonStyle(.plain)
 
                 if style.grouped && item != visibleItems.last {
-                    Divider().background(Color.white.opacity(0.15))
+                    Divider()
+                        .background(Color.white.opacity(0.15))
                 }
             }
         }
-        .background(
-            style.grouped
-                ? AnyView(RoundedRectangle(cornerRadius: 18).fill(Color(hex: style.fill ?? "#1e3c3e")))
-                : AnyView(Color.clear)
-        )
+        .background {
+            if style.grouped {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color(hex: style.fill ?? "#1e3c3e"))
+            } else {
+                Color.clear
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: style.grouped ? 18 : 0))
     }
 
     private var rowFill: Color {
-        if let fill = style.fill { return Color(hex: fill) }
+        if let fill = style.fill {
+            return Color(hex: fill)
+        }
         return Color.clear
     }
 
@@ -263,7 +298,10 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 90, alignment: .leading)
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.3)))
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.black.opacity(0.3))
+        )
     }
 
     private var versionChips: some View {
@@ -271,9 +309,10 @@ struct ContentView: View {
             Text("Supported versions")
                 .font(.footnote)
                 .foregroundColor(Color(hex: theme.text).opacity(0.6))
+
             HStack(spacing: 6) {
-                ForEach(["iOS 27.0", "27.1", "27.2", "27.3"], id: \.self) { v in
-                    Text(v)
+                ForEach(["iOS 27.0", "27.1", "27.2", "27.3"], id: \.self) { version in
+                    Text(version)
                         .font(.caption)
                         .padding(.horizontal, 11)
                         .padding(.vertical, 4)
@@ -286,25 +325,29 @@ struct ContentView: View {
 
     private var jailbreakButton: some View {
         Button {
-            // Jailbreak action goes here
+            // Jailbreak action goes here.
         } label: {
             Text("Jailbreak")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundColor(Color(hex: style.jbText))
                 .frame(maxWidth: .infinity)
                 .frame(height: 66)
-                .background(
+                .background {
                     RoundedRectangle(cornerRadius: style.radius)
-                        .fill(style.jbFill.map { Color(hex: $0) } ?? Color.clear)
-                )
-                .overlay(
+                        .fill(
+                            style.jbFill.map { Color(hex: $0) } ?? Color.clear
+                        )
+                }
+                .overlay {
                     RoundedRectangle(cornerRadius: style.radius)
-                        .stroke(Color(hex: style.jbBorder ?? "#000000"), lineWidth: style.jbBorder == nil ? 0 : 1)
-                )
+                        .stroke(
+                            Color(hex: style.jbBorder ?? "#000000"),
+                            lineWidth: style.jbBorder == nil ? 0 : 1
+                        )
+                }
         }
     }
 
-    // Delete everything and go back to the first-run state
     private func deleteAll() {
         themeID = "teal"
         buttonID = "default"
@@ -330,11 +373,17 @@ struct SettingsSheet: View {
     @Binding var bold: Bool
     @Binding var showSettings: Bool
     @Binding var logoData: Data
+
     var onDeleteAll: () -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var pickerItem: PhotosPickerItem?
     @State private var deleteArmed = false
+
+    private let gridColumns = Array(
+        repeating: GridItem(.flexible()),
+        count: 4
+    )
 
     var body: some View {
         NavigationStack {
@@ -349,69 +398,58 @@ struct SettingsSheet: View {
                     }
 
                     section("Theme (16)") {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
-                            ForEach(themes) { t in
-                                Button {
-                                    themeID = t.id
-                                } label: {
-                                    Text(t.name)
-                                        .font(.caption)
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity, minHeight: 44)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(LinearGradient(colors: [Color(hex: t.glow), Color(hex: t.bg)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.white, lineWidth: themeID == t.id ? 2 : 0)
-                                        )
+                        LazyVGrid(columns: gridColumns, spacing: 8) {
+                            ForEach(themes) { theme in
+                                ThemePreview(
+                                    theme: theme,
+                                    selected: themeID == theme.id
+                                ) {
+                                    themeID = theme.id
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
 
                     section("Button style (16)") {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
-                            ForEach(buttonStyles) { b in
-                                Button {
-                                    buttonID = b.id
-                                } label: {
-                                    Text(b.name)
-                                        .font(.caption)
-                                        .foregroundColor(Color(hex: b.text))
-                                        .frame(maxWidth: .infinity, minHeight: 44)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: min(b.radius, 14))
-                                                .fill(b.fill.map { Color(hex: $0) } ?? Color.gray.opacity(0.2))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: min(b.radius, 14))
-                                                .stroke(b.border.map { Color(hex: $0) } ?? Color.white.opacity(buttonID == b.id ? 1 : 0), lineWidth: buttonID == b.id ? 2 : 1)
-                                        )
+                        LazyVGrid(columns: gridColumns, spacing: 8) {
+                            ForEach(buttonStyles) { option in
+                                ButtonStylePreview(
+                                    option: option,
+                                    selected: buttonID == option.id
+                                ) {
+                                    buttonID = option.id
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
 
                     section("Boot logo") {
-                        PhotosPicker(selection: $pickerItem, matching: .images) {
+                        PhotosPicker(
+                            selection: $pickerItem,
+                            matching: .images
+                        ) {
                             Text("Pick from photos")
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.1)))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.1))
+                                )
                         }
+
                         Button("Use text logo") {
                             logoData = Data()
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.1)))
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white.opacity(0.1))
+                        )
                     }
                     .onChange(of: pickerItem) { _, newItem in
                         guard let newItem else { return }
+
                         Task {
                             if let data = try? await newItem.loadTransferable(type: Data.self) {
                                 logoData = data
@@ -431,16 +469,26 @@ struct SettingsSheet: View {
                             onDeleteAll()
                         } else {
                             deleteArmed = true
+
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                 deleteArmed = false
                             }
                         }
                     } label: {
-                        Text(deleteArmed ? "Tap again to delete everything" : "Delete all settings")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .foregroundColor(Color(red: 1, green: 0.54, blue: 0.54))
-                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.red.opacity(0.14)))
+                        Text(
+                            deleteArmed
+                            ? "Tap again to delete everything"
+                            : "Delete all settings"
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .foregroundColor(
+                            Color(red: 1, green: 0.54, blue: 0.54)
+                        )
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.red.opacity(0.14))
+                        )
                     }
 
                     Text("Tap the logo to reopen settings anytime.")
@@ -469,16 +517,23 @@ struct SettingsSheet: View {
     }
 
     @ViewBuilder
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.footnote)
                 .foregroundColor(.secondary)
+
             content()
         }
     }
 
-    private func toggleRow(_ title: String, isOn: Binding<Bool>) -> some View {
+    private func toggleRow(
+        _ title: String,
+        isOn: Binding<Bool>
+    ) -> some View {
         HStack {
             Text(title)
             Spacer()
@@ -486,30 +541,132 @@ struct SettingsSheet: View {
         }
         .padding(.horizontal, 14)
         .frame(height: 46)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.08)))
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.08))
+        )
     }
 }
 
-// Slider toggle: green check when on, grey cross when off
+// MARK: - Theme preview
+
+private struct ThemePreview: View {
+    let theme: AppTheme
+    let selected: Bool
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            Text(theme.name)
+                .font(.caption)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(hex: theme.glow),
+                                    Color(hex: theme.bg)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            Color.white,
+                            lineWidth: selected ? 2 : 0
+                        )
+                }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Button style preview
+
+private struct ButtonStylePreview: View {
+    let option: ButtonStyleOption
+    let selected: Bool
+    let onSelect: () -> Void
+
+    private var previewRadius: CGFloat {
+        min(option.radius, 14)
+    }
+
+    private var previewFill: Color {
+        guard let fill = option.fill else {
+            return Color.gray.opacity(0.2)
+        }
+
+        return Color(hex: fill)
+    }
+
+    private var previewBorder: Color {
+        guard let border = option.border else {
+            return Color.white.opacity(selected ? 1 : 0)
+        }
+
+        return Color(hex: border)
+    }
+
+    private var previewBorderWidth: CGFloat {
+        selected ? 2 : 1
+    }
+
+    var body: some View {
+        Button(action: onSelect) {
+            Text(option.name)
+                .font(.caption)
+                .foregroundColor(Color(hex: option.text))
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background {
+                    RoundedRectangle(cornerRadius: previewRadius)
+                        .fill(previewFill)
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: previewRadius)
+                        .stroke(
+                            previewBorder,
+                            lineWidth: previewBorderWidth
+                        )
+                }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Slider toggle
+
 struct CheckSwitch: View {
     @Binding var isOn: Bool
 
     var body: some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.2)) { isOn.toggle() }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isOn.toggle()
+            }
         } label: {
             ZStack(alignment: isOn ? .trailing : .leading) {
                 Capsule()
-                    .fill(isOn ? Color.green.opacity(0.45) : Color.white.opacity(0.25))
+                    .fill(
+                        isOn
+                        ? Color.green.opacity(0.45)
+                        : Color.white.opacity(0.25)
+                    )
                     .frame(width: 42, height: 24)
+
                 Circle()
                     .fill(isOn ? Color.green : Color.white)
                     .frame(width: 18, height: 18)
-                    .overlay(
+                    .overlay {
                         Image(systemName: isOn ? "checkmark" : "xmark")
                             .font(.system(size: 9, weight: .bold))
                             .foregroundColor(isOn ? .white : .gray)
-                    )
+                    }
                     .padding(3)
             }
         }
