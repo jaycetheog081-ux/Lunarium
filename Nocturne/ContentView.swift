@@ -447,7 +447,7 @@ struct SettingsSheet: View {
                                 .fill(Color.white.opacity(0.1))
                         )
                     }
-                    .onChange(of: pickerItem) { _, newItem in
+                    .onChange(of: pickerItem) { newItem in
                         guard let newItem else { return }
 
                         Task {
