@@ -1,567 +1,522 @@
 import SwiftUI
+import PhotosUI
 
-private enum Theme {
-    static let background = Color(red: 0.035, green: 0.047, blue: 0.060)
-    static let surface = Color(red: 0.075, green: 0.090, blue: 0.100)
-    static let raised = Color(red: 0.105, green: 0.125, blue: 0.130)
-    static let line = Color.white.opacity(0.085)
-    static let green = Color(red: 0.66, green: 0.84, blue: 0.43)
-    static let greenDim = Color(red: 0.39, green: 0.57, blue: 0.27)
-    static let purple = Color(red: 0.65, green: 0.57, blue: 0.86)
-    static let gold = Color(red: 0.82, green: 0.70, blue: 0.43)
-    static let text = Color(red: 0.93, green: 0.95, blue: 0.91)
-    static let muted = Color(red: 0.58, green: 0.63, blue: 0.61)
+// MARK: - Colors
+
+extension Color {
+    init(hex: String) {
+        let h = hex.replacingOccurrences(of: "#", with: "")
+        let v = UInt64(h, radix: 16) ?? 0
+        self.init(
+            red: Double((v >> 16) & 0xFF) / 255,
+            green: Double((v >> 8) & 0xFF) / 255,
+            blue: Double(v & 0xFF) / 255
+        )
+    }
 }
 
-struct NocturneRootView: View {
-    @State private var tab = 0
+// MARK: - Themes (16)
+
+struct AppTheme: Identifiable {
+    let id: String
+    let name: String
+    let bg: String
+    let glow: String
+    let accent: String
+    let sheet: String
+    let text: String
+}
+
+let themes: [AppTheme] = [
+    .init(id: "teal", name: "Teal", bg: "#0b1416", glow: "#12383a", accent: "#2a6e70", sheet: "#14252a", text: "#eef8f6"),
+    .init(id: "red", name: "Red", bg: "#140708", glow: "#4a0f14", accent: "#961e24", sheet: "#2a1214", text: "#fbeeee"),
+    .init(id: "ocean", name: "Ocean", bg: "#06142a", glow: "#0e3a7a", accent: "#1f5fb0", sheet: "#0d1f3d", text: "#eef4ff"),
+    .init(id: "purple", name: "Purple", bg: "#120818", glow: "#3b1a5e", accent: "#6a2fa0", sheet: "#1d1028", text: "#f6eeff"),
+    .init(id: "amber", name: "Amber", bg: "#171006", glow: "#5a3a0a", accent: "#b57412", sheet: "#2a1d0c", text: "#fff8ee"),
+    .init(id: "forest", name: "Forest", bg: "#07140b", glow: "#144a26", accent: "#2d7d46", sheet: "#0f2216", text: "#eefaf1"),
+    .init(id: "rose", name: "Rose", bg: "#1a0a12", glow: "#5a1838", accent: "#a02c62", sheet: "#2a1220", text: "#fff0f6"),
+    .init(id: "slate", name: "Slate", bg: "#0c1014", glow: "#26323e", accent: "#4a5d70", sheet: "#161d25", text: "#eef2f6"),
+    .init(id: "midnight", name: "Midnight", bg: "#050818", glow: "#1a2a6a", accent: "#2b3fa0", sheet: "#0c1230", text: "#eef0ff"),
+    .init(id: "crimson", name: "Crimson", bg: "#0d0306", glow: "#5c0c1c", accent: "#8a1028", sheet: "#1d0810", text: "#fff0f2"),
+    .init(id: "mint", name: "Mint", bg: "#0a1a16", glow: "#1c5a4a", accent: "#2c8a72", sheet: "#10261f", text: "#effcf8"),
+    .init(id: "sunset", name: "Sunset", bg: "#1a0c08", glow: "#6a2a14", accent: "#c2572a", sheet: "#2a150d", text: "#fff3ec"),
+    .init(id: "cyber", name: "Cyber", bg: "#05090d", glow: "#0a4a3a", accent: "#00a57e", sheet: "#0b1a20", text: "#e6fff8"),
+    .init(id: "lavender", name: "Lavender", bg: "#120e1a", glow: "#3c2f63", accent: "#6f5ba8", sheet: "#1c1630", text: "#f4f0ff"),
+    .init(id: "gold", name: "Gold", bg: "#120e04", glow: "#5a4410", accent: "#a6851e", sheet: "#221a08", text: "#fff9ea"),
+    .init(id: "graphite", name: "Graphite", bg: "#0a0a0a", glow: "#2a2a2a", accent: "#4a4a4a", sheet: "#161616", text: "#f2f2f2")
+]
+
+// MARK: - Button styles (16)
+
+struct ButtonStyleOption: Identifiable {
+    let id: String
+    let name: String
+    let fill: String?        // nil = transparent
+    let text: String
+    let border: String?
+    let radius: CGFloat
+    let grouped: Bool        // true = one card with dividers
+    let jbFill: String?
+    let jbText: String
+    let jbBorder: String?
+}
+
+let buttonStyles: [ButtonStyleOption] = [
+    .init(id: "default", name: "Default", fill: "#1e3c3e", text: "#eef8f6", border: nil, radius: 14, grouped: true, jbFill: "#2a6e70", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "white", name: "White", fill: "#ffffff", text: "#111111", border: nil, radius: 14, grouped: true, jbFill: "#ffffff", jbText: "#111111", jbBorder: nil),
+    .init(id: "outline", name: "Outline", fill: nil, text: "#ffffff", border: "#ffffff", radius: 14, grouped: false, jbFill: nil, jbText: "#ffffff", jbBorder: "#ffffff"),
+    .init(id: "pill", name: "Pill", fill: "#3a3f40", text: "#ffffff", border: nil, radius: 999, grouped: false, jbFill: "#4a5051", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "square", name: "Square", fill: "#1b2b2d", text: "#eef8f6", border: nil, radius: 4, grouped: false, jbFill: "#2a4a4c", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "red", name: "Red", fill: "#c0262d", text: "#ffffff", border: nil, radius: 14, grouped: false, jbFill: "#8e1a20", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "blue", name: "Blue", fill: "#1f63d6", text: "#ffffff", border: nil, radius: 14, grouped: false, jbFill: "#143f8f", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "green", name: "Green", fill: "#23a35a", text: "#ffffff", border: nil, radius: 14, grouped: false, jbFill: "#16733f", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "gold", name: "Gold", fill: "#d9a92c", text: "#1a1200", border: nil, radius: 14, grouped: false, jbFill: "#a57e14", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "purple", name: "Purple", fill: "#7c3cd1", text: "#ffffff", border: nil, radius: 14, grouped: false, jbFill: "#55259a", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "tealline", name: "Teal Line", fill: nil, text: "#5ff0dc", border: "#5ff0dc", radius: 14, grouped: false, jbFill: nil, jbText: "#5ff0dc", jbBorder: "#5ff0dc"),
+    .init(id: "dark", name: "Dark", fill: "#0c0c0c", text: "#f0f0f0", border: "#2a2a2a", radius: 14, grouped: false, jbFill: "#1a1a1a", jbText: "#f0f0f0", jbBorder: nil),
+    .init(id: "pink", name: "Pink", fill: "#ff7eb6", text: "#2a0a1a", border: nil, radius: 14, grouped: false, jbFill: "#e0568f", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "frost", name: "Frost", fill: "#5a6163", text: "#ffffff", border: "#8a9294", radius: 18, grouped: false, jbFill: "#6a7274", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "mint", name: "Mint", fill: "#23705f", text: "#effcf8", border: nil, radius: 14, grouped: false, jbFill: "#1c5a4a", jbText: "#ffffff", jbBorder: nil),
+    .init(id: "minimal", name: "Minimal", fill: nil, text: "#eef8f6", border: nil, radius: 10, grouped: false, jbFill: nil, jbText: "#eef8f6", jbBorder: nil)
+]
+
+let menuItems = ["Settings", "Restart Springboard", "Reboot Userspace", "Credits"]
+let bootLines = [
+    "[boot] loading kernel hooks",
+    "[boot] checking rootFS",
+    "[patch] applying tweak patches",
+    "[mount] remounting filesystem",
+    "[loader] installing loader",
+    "[ok] environment ready"
+]
+
+// MARK: - Main screen
+
+struct ContentView: View {
+    @AppStorage("theme") private var themeID = "teal"
+    @AppStorage("buttons") private var buttonID = "default"
+    @AppStorage("device") private var device = "iphone"
+    @AppStorage("verbose") private var verbose = false
+    @AppStorage("bold") private var bold = false
+    @AppStorage("showSettings") private var showSettings = true
+    @AppStorage("logo") private var logoData = Data()
+    @AppStorage("firstRunDone") private var firstRunDone = false
+
+    @State private var showSheet = false
+    @State private var glowOn = false
+    @State private var logLines: [String] = []
+    @State private var logIndex = 0
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    private let logTimer = Timer.publish(every: 1.2, on: .main, in: .common).autoconnect()
+
+    private var theme: AppTheme { themes.first { $0.id == themeID } ?? themes[0] }
+    private var style: ButtonStyleOption { buttonStyles.first { $0.id == buttonID } ?? buttonStyles[0] }
+    private var maxWidth: CGFloat { (device == "ipad" || sizeClass == .regular) ? 640 : 420 }
 
     var body: some View {
         ZStack {
-            Theme.background.ignoresSafeArea()
+            Color(hex: theme.bg).ignoresSafeArea()
+            Circle()
+                .fill(Color(hex: theme.glow))
+                .frame(width: 420, height: 420)
+                .blur(radius: 80)
+                .offset(x: -150, y: -300)
+                .ignoresSafeArea()
 
-            VStack(spacing: 0) {
+            VStack(spacing: 16) {
                 header
+                    .padding(.top, 20)
 
-                Group {
-                    switch tab {
-                    case 0: OverviewScreen()
-                    case 1: ResearchScreen()
-                    case 2: DeviceScreen()
-                    default: AboutScreen()
+                Spacer(minLength: 8)
+
+                menu
+
+                if verbose {
+                    logView
+                }
+
+                versionChips
+
+                Spacer(minLength: 8)
+
+                jailbreakButton
+
+                Text("Developed and made by @solartech @itechmac @cobr404751")
+                    .font(.footnote)
+                    .foregroundColor(Color(hex: theme.text).opacity(0.6))
+                    .multilineTextAlignment(.center)
+            }
+            .padding(20)
+            .frame(maxWidth: maxWidth)
+        }
+        .foregroundColor(Color(hex: theme.text))
+        .sheet(isPresented: $showSheet) {
+            SettingsSheet(
+                device: $device,
+                themeID: $themeID,
+                buttonID: $buttonID,
+                verbose: $verbose,
+                bold: $bold,
+                showSettings: $showSettings,
+                logoData: $logoData,
+                onDeleteAll: deleteAll
+            )
+        }
+        .onAppear {
+            if !firstRunDone {
+                showSheet = true
+                firstRunDone = true
+            }
+            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                glowOn = true
+            }
+        }
+        .onReceive(logTimer) { _ in
+            guard verbose else { return }
+            logLines.append("> " + bootLines[logIndex % bootLines.count])
+            logIndex += 1
+            if logLines.count > 4 { logLines.removeFirst() }
+        }
+    }
+
+    // Logo, or the picked boot logo photo
+    private var header: some View {
+        VStack(spacing: 4) {
+            if let image = UIImage(data: logoData) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 200, maxHeight: 90)
+                    .onTapGesture { showSheet = true }
+            } else {
+                Text("NOCTURNE")
+                    .font(.system(size: 40, weight: bold ? .black : .bold))
+                    .tracking(2)
+                    .shadow(color: Color(hex: theme.accent).opacity(0.8), radius: glowOn ? 18 : 6)
+                    .onTapGesture { showSheet = true }
+            }
+            Text("Device ready")
+                .font(.footnote)
+                .foregroundColor(Color(hex: theme.text).opacity(0.6))
+        }
+    }
+
+    private var visibleItems: [String] {
+        menuItems.filter { showSettings || $0 != "Settings" }
+    }
+
+    private var menu: some View {
+        VStack(spacing: style.grouped ? 0 : 10) {
+            ForEach(visibleItems, id: \.self) { item in
+                Button {
+                    if item == "Settings" { showSheet = true }
+                } label: {
+                    HStack {
+                        Text(item)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .opacity(0.5)
+                    }
+                    .font(.system(size: 18))
+                    .foregroundColor(Color(hex: style.text))
+                    .padding(.horizontal, 18)
+                    .frame(height: 56)
+                    .background(
+                        style.grouped
+                            ? Color.clear
+                            : rowFill
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: style.radius)
+                            .stroke(Color(hex: style.border ?? "#000000"), lineWidth: style.grouped || style.border == nil ? 0 : 1)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: style.grouped ? 0 : style.radius))
+                }
+                .buttonStyle(.plain)
+
+                if style.grouped && item != visibleItems.last {
+                    Divider().background(Color.white.opacity(0.15))
+                }
+            }
+        }
+        .background(
+            style.grouped
+                ? AnyView(RoundedRectangle(cornerRadius: 18).fill(Color(hex: style.fill ?? "#1e3c3e")))
+                : AnyView(Color.clear)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: style.grouped ? 18 : 0))
+    }
+
+    private var rowFill: Color {
+        if let fill = style.fill { return Color(hex: fill) }
+        return Color.clear
+    }
+
+    private var logView: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(logLines, id: \.self) { line in
+                Text(line)
+                    .font(.system(.footnote, design: .monospaced))
+                    .foregroundColor(Color(hex: theme.text).opacity(0.6))
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 90, alignment: .leading)
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.3)))
+    }
+
+    private var versionChips: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Supported versions")
+                .font(.footnote)
+                .foregroundColor(Color(hex: theme.text).opacity(0.6))
+            HStack(spacing: 6) {
+                ForEach(["iOS 27.0", "27.1", "27.2", "27.3"], id: \.self) { v in
+                    Text(v)
+                        .font(.caption)
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.white.opacity(0.08)))
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var jailbreakButton: some View {
+        Button {
+            // Jailbreak action goes here
+        } label: {
+            Text("Jailbreak")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(Color(hex: style.jbText))
+                .frame(maxWidth: .infinity)
+                .frame(height: 66)
+                .background(
+                    RoundedRectangle(cornerRadius: style.radius)
+                        .fill(style.jbFill.map { Color(hex: $0) } ?? Color.clear)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: style.radius)
+                        .stroke(Color(hex: style.jbBorder ?? "#000000"), lineWidth: style.jbBorder == nil ? 0 : 1)
+                )
+        }
+    }
+
+    // Delete everything and go back to the first-run state
+    private func deleteAll() {
+        themeID = "teal"
+        buttonID = "default"
+        device = "iphone"
+        verbose = false
+        bold = false
+        showSettings = true
+        logoData = Data()
+        firstRunDone = false
+        logLines = []
+        logIndex = 0
+        showSheet = true
+    }
+}
+
+// MARK: - Settings sheet
+
+struct SettingsSheet: View {
+    @Binding var device: String
+    @Binding var themeID: String
+    @Binding var buttonID: String
+    @Binding var verbose: Bool
+    @Binding var bold: Bool
+    @Binding var showSettings: Bool
+    @Binding var logoData: Data
+    var onDeleteAll: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var deleteArmed = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    section("Device") {
+                        Picker("Device", selection: $device) {
+                            Text("iPhone").tag("iphone")
+                            Text("iPad").tag("ipad")
+                        }
+                        .pickerStyle(.segmented)
+                    }
+
+                    section("Theme (16)") {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
+                            ForEach(themes) { t in
+                                Button {
+                                    themeID = t.id
+                                } label: {
+                                    Text(t.name)
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity, minHeight: 44)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(LinearGradient(colors: [Color(hex: t.glow), Color(hex: t.bg)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.white, lineWidth: themeID == t.id ? 2 : 0)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    section("Button style (16)") {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
+                            ForEach(buttonStyles) { b in
+                                Button {
+                                    buttonID = b.id
+                                } label: {
+                                    Text(b.name)
+                                        .font(.caption)
+                                        .foregroundColor(Color(hex: b.text))
+                                        .frame(maxWidth: .infinity, minHeight: 44)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: min(b.radius, 14))
+                                                .fill(b.fill.map { Color(hex: $0) } ?? Color.gray.opacity(0.2))
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: min(b.radius, 14))
+                                                .stroke(b.border.map { Color(hex: $0) } ?? Color.white.opacity(buttonID == b.id ? 1 : 0), lineWidth: buttonID == b.id ? 2 : 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    section("Boot logo") {
+                        PhotosPicker(selection: $pickerItem, matching: .images) {
+                            Text("Pick from photos")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.1)))
+                        }
+                        Button("Use text logo") {
+                            logoData = Data()
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.1)))
+                    }
+                    .onChange(of: pickerItem) { _, newItem in
+                        guard let newItem else { return }
+                        Task {
+                            if let data = try? await newItem.loadTransferable(type: Data.self) {
+                                logoData = data
+                            }
+                        }
+                    }
+
+                    section("Options") {
+                        toggleRow("Verbose boot", isOn: $verbose)
+                        toggleRow("Bold logo", isOn: $bold)
+                        toggleRow("Show Settings button", isOn: $showSettings)
+                    }
+
+                    Button {
+                        if deleteArmed {
+                            deleteArmed = false
+                            onDeleteAll()
+                        } else {
+                            deleteArmed = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                deleteArmed = false
+                            }
+                        }
+                    } label: {
+                        Text(deleteArmed ? "Tap again to delete everything" : "Delete all settings")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .foregroundColor(Color(red: 1, green: 0.54, blue: 0.54))
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.red.opacity(0.14)))
+                    }
+
+                    Text("Tap the logo to reopen settings anytime.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(20)
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .padding(8)
+                            .background(Circle().fill(Color.gray.opacity(0.25)))
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                bottomBar
             }
         }
-        .preferredColorScheme(.dark)
-        .tint(Theme.green)
+        .presentationDetents([.large])
     }
 
-    private var header: some View {
-        HStack(spacing: 11) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Theme.raised)
-                    .frame(width: 37, height: 37)
+    @ViewBuilder
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+            content()
+        }
+    }
 
-                Image(systemName: "leaf.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Theme.green)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("NOCTURNE")
-                    .font(.system(size: 15, weight: .bold))
-                    .tracking(1.8)
-                    .foregroundStyle(Theme.text)
-
-                Text("RESEARCH TOOLKIT")
-                    .font(.system(size: 8, weight: .semibold))
-                    .tracking(1.6)
-                    .foregroundStyle(Theme.muted)
-            }
-
+    private func toggleRow(_ title: String, isOn: Binding<Bool>) -> some View {
+        HStack {
+            Text(title)
             Spacer()
-
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(Theme.green)
-                    .frame(width: 6, height: 6)
-
-                Text("LOCAL")
-                    .font(.system(size: 9, weight: .semibold))
-                    .tracking(1)
-                    .foregroundStyle(Theme.muted)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(Theme.surface, in: Capsule())
+            CheckSwitch(isOn: isOn)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 12)
-        .padding(.bottom, 13)
+        .padding(.horizontal, 14)
+        .frame(height: 46)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.08)))
     }
+}
 
-    private var bottomBar: some View {
-        HStack(spacing: 0) {
-            nav("square.grid.2x2", "Home", 0)
-            nav("doc.text.magnifyingglass", "Research", 1)
-            nav("iphone", "Device", 2)
-            nav("ellipsis", "About", 3)
-        }
-        .padding(.top, 10)
-        .padding(.bottom, 7)
-        .background(Theme.surface)
-        .overlay(alignment: .top) {
-            Rectangle().fill(Theme.line).frame(height: 1)
-        }
-    }
+// Slider toggle: green check when on, grey cross when off
+struct CheckSwitch: View {
+    @Binding var isOn: Bool
 
-    private func nav(_ symbol: String, _ title: String, _ index: Int) -> some View {
+    var body: some View {
         Button {
-            tab = index
+            withAnimation(.easeInOut(duration: 0.2)) { isOn.toggle() }
         } label: {
-            VStack(spacing: 4) {
-                Image(systemName: symbol)
-                    .font(.system(size: 17, weight: tab == index ? .semibold : .regular))
-
-                Text(title)
-                    .font(.system(size: 9, weight: tab == index ? .semibold : .medium))
+            ZStack(alignment: isOn ? .trailing : .leading) {
+                Capsule()
+                    .fill(isOn ? Color.green.opacity(0.45) : Color.white.opacity(0.25))
+                    .frame(width: 42, height: 24)
+                Circle()
+                    .fill(isOn ? Color.green : Color.white)
+                    .frame(width: 18, height: 18)
+                    .overlay(
+                        Image(systemName: isOn ? "checkmark" : "xmark")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(isOn ? .white : .gray)
+                    )
+                    .padding(3)
             }
-            .foregroundStyle(tab == index ? Theme.green : Theme.muted)
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 }
 
-private struct PageHeading: View {
-    let eyebrow: String
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(eyebrow.uppercased())
-                .font(.system(size: 9, weight: .bold))
-                .tracking(1.8)
-                .foregroundStyle(Theme.green)
-
-            Text(title)
-                .font(.system(size: 27, weight: .bold))
-                .tracking(-0.6)
-                .foregroundStyle(Theme.text)
-
-            Text(subtitle)
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.muted)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.bottom, 5)
-    }
-}
-
-private struct SectionLabel: View {
-    let title: String
-    var trailing: String? = nil
-
-    var body: some View {
-        HStack {
-            Text(title.uppercased())
-                .font(.system(size: 9, weight: .bold))
-                .tracking(1.5)
-                .foregroundStyle(Theme.muted)
-
-            Spacer()
-
-            if let trailing {
-                Text(trailing.uppercased())
-                    .font(.system(size: 8, weight: .semibold))
-                    .tracking(1)
-                    .foregroundStyle(Theme.greenDim)
-            }
-        }
-    }
-}
-
-private struct Hairline: View {
-    var body: some View {
-        Rectangle()
-            .fill(Theme.line)
-            .frame(height: 1)
-    }
-}
-
-struct OverviewScreen: View {
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 23) {
-                PageHeading(
-                    eyebrow: "Workspace / 01",
-                    title: "Overview",
-                    subtitle: "A focused space for device notes and vulnerability documentation."
-                )
-
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack {
-                        Label("CURRENT DOSSIER", systemImage: "doc.text")
-                            .font(.system(size: 9, weight: .bold))
-                            .tracking(1.2)
-                            .foregroundStyle(Theme.green)
-
-                        Spacer()
-
-                        Text("IMPORTED")
-                            .font(.system(size: 8, weight: .bold))
-                            .tracking(1)
-                            .foregroundStyle(Theme.gold)
-                    }
-
-                    Text("CVE-2026-112477")
-                        .font(.system(size: 21, weight: .semibold, design: .monospaced))
-                        .tracking(-0.8)
-                        .foregroundStyle(Theme.text)
-
-                    Text("IOSurfaceRoot user-client registry research")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Theme.muted)
-
-                    Hairline()
-
-                    HStack(spacing: 18) {
-                        metric("SOURCE FILES", "06")
-                        metric("STATUS", "Review")
-                        Spacer(minLength: 0)
-
-                        Image(systemName: "arrow.up.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Theme.green)
-                    }
-                }
-                .padding(16)
-                .background(
-                    Theme.surface,
-                    in: RoundedRectangle(cornerRadius: 13, style: .continuous)
-                )
-                .overlay {
-                    RoundedRectangle(cornerRadius: 13, style: .continuous)
-                        .stroke(Theme.line, lineWidth: 1)
-                }
-
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(title: "Workspace", trailing: "03 MODULES")
-
-                    moduleRow(
-                        "Research dossier",
-                        "Source summary and limitations",
-                        "doc.text.magnifyingglass",
-                        Theme.purple
-                    )
-
-                    Hairline()
-
-                    moduleRow(
-                        "Device record",
-                        "Manually maintained device details",
-                        "iphone",
-                        Theme.green
-                    )
-
-                    Hairline()
-
-                    moduleRow(
-                        "Build pipeline",
-                        "Unsigned iOS build workflow",
-                        "hammer",
-                        Theme.gold
-                    )
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Scope", systemImage: "info.circle")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Theme.text)
-
-                    Text("NOCTURNE is a documentation interface. It does not execute proof-of-concept code, access kernel memory, or modify device security.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Theme.muted)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.top, 2)
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 24)
-        }
-    }
-
-    private func metric(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.system(size: 8, weight: .bold))
-                .tracking(1)
-                .foregroundStyle(Theme.muted)
-
-            Text(value)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Theme.text)
-        }
-    }
-
-    private func moduleRow(
-        _ name: String,
-        _ detail: String,
-        _ symbol: String,
-        _ color: Color
-    ) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(color)
-                .frame(width: 25)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(name)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Theme.text)
-
-                Text(detail)
-                    .font(.system(size: 10))
-                    .foregroundStyle(Theme.muted)
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(Theme.muted.opacity(0.8))
-        }
-        .padding(.vertical, 3)
-    }
-}
-
-struct ResearchScreen: View {
-    private let facts: [(String, String)] = [
-        ("Project label", "CVE-2026-112477 — IOSurfaceRoot User Client Registry UAF."),
-        ("Research target", "The archive describes a use-after-free-style condition in the IOSurfaceRoot user-client registry."),
-        ("Reported environment", "The README claims testing on iOS 26.4 (23E246), arm64e. This claim has not been independently verified."),
-        ("Reported observation", "The author reports a repeatable stale-entry condition in their test environment. The uploaded materials alone do not establish that the issue affects other devices or OS builds."),
-        ("Open questions", "The analysis says the internal entry field layout was not fully mapped and that no kernel write primitive had been attempted."),
-        ("Archive completeness", "The README refers to a build.sh file and a src/ path, but neither appears in the uploaded ZIP. The Objective-C proof-of-concept is not embedded or run by NOCTURNE.")
-    ]
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 20) {
-                PageHeading(
-                    eyebrow: "Dossier / CVE-2026-112477",
-                    title: "IOSurfaceRoot UAF",
-                    subtitle: "A source-derived summary. Statements are attributed to the supplied archive."
-                )
-
-                HStack(spacing: 7) {
-                    statusTag("RESEARCH POC", color: Theme.purple)
-                    statusTag("UNVERIFIED", color: Theme.gold)
-                    statusTag("DOCS ONLY", color: Theme.green)
-                }
-
-                VStack(spacing: 0) {
-                    ForEach(Array(facts.enumerated()), id: \.offset) { index, fact in
-                        VStack(alignment: .leading, spacing: 7) {
-                            Text(fact.0.uppercased())
-                                .font(.system(size: 8, weight: .bold))
-                                .tracking(1.35)
-                                .foregroundStyle(Theme.green)
-
-                            Text(fact.1)
-                                .font(.system(size: 11))
-                                .foregroundStyle(Theme.text.opacity(0.88))
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 14)
-
-                        if index != facts.count - 1 {
-                            Hairline()
-                        }
-                    }
-                }
-                .padding(.horizontal, 15)
-                .background(
-                    Theme.surface,
-                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                )
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Theme.line, lineWidth: 1)
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    SectionLabel(title: "Source archive")
-
-                    Text("README.md · docs/ANALYSIS.md · LICENSE · entry_isurf_uaf.m")
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(Theme.muted)
-
-                    Text("The source trigger is excluded from this app package. This dossier records the available material without operational exploit instructions.")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Theme.muted)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 24)
-        }
-    }
-
-    private func statusTag(_ title: String, color: Color) -> some View {
-        Text(title)
-            .font(.system(size: 8, weight: .bold))
-            .tracking(0.7)
-            .foregroundStyle(color)
-            .padding(.horizontal, 9)
-            .padding(.vertical, 6)
-            .background(color.opacity(0.10), in: Capsule())
-    }
-}
-
-struct DeviceScreen: View {
-    @State private var model = ""
-    @State private var ios = ""
-    @State private var chip = ""
-    @State private var notes = ""
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 19) {
-                PageHeading(
-                    eyebrow: "Inventory / Manual",
-                    title: "Device record",
-                    subtitle: "Keep a local note of the device used for your research."
-                )
-
-                VStack(alignment: .leading, spacing: 15) {
-                    field("DEVICE MODEL", placeholder: "e.g. iPhone model", text: $model)
-                    field("IOS VERSION", placeholder: "e.g. 26.x", text: $ios)
-                    field("CHIP / ARCHITECTURE", placeholder: "Optional", text: $chip)
-
-                    VStack(alignment: .leading, spacing: 7) {
-                        Text("NOTES")
-                            .font(.system(size: 9, weight: .bold))
-                            .tracking(1.3)
-                            .foregroundStyle(Theme.muted)
-
-                        TextEditor(text: $notes)
-                            .font(.system(size: 12))
-                            .frame(height: 118)
-                            .scrollContentBackground(.hidden)
-                            .padding(8)
-                            .background(
-                                Theme.background,
-                                in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-                            )
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                    .stroke(Theme.line, lineWidth: 1)
-                            }
-                    }
-                }
-                .padding(15)
-                .background(
-                    Theme.surface,
-                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                )
-
-                Text("Entries remain temporary and are not saved or transmitted.")
-                    .font(.system(size: 10))
-                    .foregroundStyle(Theme.muted)
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 24)
-        }
-    }
-
-    private func field(
-        _ title: String,
-        placeholder: String,
-        text: Binding<String>
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(title)
-                .font(.system(size: 9, weight: .bold))
-                .tracking(1.3)
-                .foregroundStyle(Theme.muted)
-
-            TextField(placeholder, text: text)
-                .font(.system(size: 12))
-                .padding(.horizontal, 11)
-                .padding(.vertical, 12)
-                .background(
-                    Theme.background,
-                    in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-                )
-                .overlay {
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .stroke(Theme.line, lineWidth: 1)
-                }
-        }
-    }
-}
-
-struct AboutScreen: View {
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 20) {
-                PageHeading(
-                    eyebrow: "Project / About",
-                    title: "NOCTURNE",
-                    subtitle: "A quiet, native-feeling iOS research interface."
-                )
-
-                VStack(alignment: .leading, spacing: 8) {
-                    SectionLabel(title: "Version")
-
-                    Text("NOCTURNE 0.3")
-                        .font(.system(size: 19, weight: .semibold))
-                        .foregroundStyle(Theme.text)
-
-                    Text("SwiftUI · iOS 16+ · Documentation-only")
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(Theme.muted)
-                }
-
-                Hairline()
-
-                aboutRow(
-                    "Included",
-                    "Overview, source-derived research dossier, manual device record, project notes, and an unsigned IPA workflow.",
-                    "checkmark.circle",
-                    Theme.green
-                )
-
-                Hairline()
-
-                aboutRow(
-                    "Not included",
-                    "No exploit trigger, kernel read/write primitive, privilege escalation, persistence, or security bypass.",
-                    "minus.circle",
-                    Theme.gold
-                )
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 18)
-            .padding(.bottom, 24)
-        }
-    }
-
-    private func aboutRow(
-        _ title: String,
-        _ detail: String,
-        _ symbol: String,
-        _ color: Color
-    ) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 15))
-                .foregroundStyle(color)
-                .frame(width: 22)
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Theme.text)
-
-                Text(detail)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Theme.muted)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
+#Preview {
+    ContentView()
 }
