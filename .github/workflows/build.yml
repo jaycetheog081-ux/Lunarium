@@ -1,0 +1,96 @@
+
+name: Build NOCTURNE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Nocturne/**'
+      - 'Nocturne.xcodeproj/**'
+      - '.github/workflows/build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build unsigned iOS IPA
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26.6
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app
+          xcodebuild -version
+          xcodebuild -showsdks
+
+      - name: Verify project and scheme
+        run: |
+          test -d Nocturne.xcodeproj
+          test -f Nocturne.xcodeproj/xcshareddata/xcschemes/Nocturne.xcscheme
+
+          xcodebuild -list \
+            -project Nocturne.xcodeproj
+
+      - name: Build application
+        run: |
+          set -o pipefail
+
+          xcodebuild \
+            -project Nocturne.xcodeproj \
+            -scheme Nocturne \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"
+
+      - name: Package unsigned IPA
+        run: |
+          set -e
+
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/Nocturne.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "ERROR: Nocturne.app was not generated."
+            exit 1
+          fi
+
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleIdentifier" \
+            "$APP_PATH/Info.plist"
+
+          mkdir -p "$RUNNER_TEMP/IPA/Payload"
+
+          cp -R "$APP_PATH" "$RUNNER_TEMP/IPA/Payload/"
+
+          cd "$RUNNER_TEMP/IPA"
+
+          ditto -c -k --sequesterRsrc \
+            Payload \
+            "$GITHUB_WORKSPACE/Nocturne-unsigned.ipa"
+
+          unzip -t "$GITHUB_WORKSPACE/Nocturne-unsigned.ipa"
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nocturne-unsigned-ipa
+          path: Nocturne-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nocturne-build-diagnostics
+          path: ${{ runner.temp }}/xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 7
