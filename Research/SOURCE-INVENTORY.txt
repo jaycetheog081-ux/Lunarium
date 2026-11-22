@@ -1,0 +1,13 @@
+Imported archive: CVE-2026-112477-main.zip
+
+Files observed:
+- LICENSE
+- README.md
+- docs/ANALYSIS.md
+- entry_isurf_uaf.m
+
+Not present despite README references:
+- build.sh
+- src/entry_isurf_uaf.m
+
+The Objective-C proof-of-concept is intentionally not included in this NOCTURNE source package.
