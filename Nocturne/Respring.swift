@@ -33,7 +33,7 @@ setInterval(() => {
     const bytes = new Uint8Array(1024 * 1024 * 10);
     crypto.getRandomValues(bytes);
 }, 0);
-<\/script>
+<\\/script>
 </body>
 </html>`;
 </script>
