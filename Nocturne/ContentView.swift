@@ -110,6 +110,7 @@ struct ContentView: View {
     @State private var isJailbreaking = false
     @State private var jailbreakComplete = false
     @State private var isRespringing = false
+    @State private var showRespringView = false
 
     @Environment(\.horizontalSizeClass) private var sizeClass
 
@@ -187,11 +188,18 @@ struct ContentView: View {
                 glowOn = true
             }
         }
+        .overlay {
+            if showRespringView {
+                RespringView()
+                    .ignoresSafeArea()
+                    .background(Color.black)
+            }
+        }
     }
 
     private var header: some View {
         VStack(spacing: 4) {
-            if let image = UIImage(data: logoData) {
+            if let image = UIImage(data: logoData) ?? UIImage(named: "LunariumLogo") {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
@@ -200,7 +208,7 @@ struct ContentView: View {
                         showSheet = true
                     }
             } else {
-                Text("NOCTURNE")
+                Text("LUNARIUM")
                     .font(.system(size: 40, weight: bold ? .black : .bold))
                     .tracking(2)
                     .shadow(
@@ -378,20 +386,8 @@ struct ContentView: View {
     private func performRespring() {
         guard !isRespringing else { return }
 
-        withAnimation(.easeInOut(duration: 0.35)) {
-            isRespringing = true
-        }
-
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 900_000_000)
-
-            logLines = []
-            logIndex = 0
-
-            withAnimation(.easeInOut(duration: 0.45)) {
-                isRespringing = false
-            }
-        }
+        isRespringing = true
+        showRespringView = true
     }
 
     private func deleteAll() {
@@ -408,6 +404,7 @@ struct ContentView: View {
         isJailbreaking = false
         jailbreakComplete = false
         isRespringing = false
+        showRespringView = false
         showSheet = true
     }
 }
