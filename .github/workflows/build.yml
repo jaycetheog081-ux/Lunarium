@@ -1,5 +1,4 @@
-
-name: Build NOCTURNE
+name: Build Lunarium
 
 on:
   workflow_dispatch:
@@ -16,7 +15,7 @@ permissions:
 
 jobs:
   build:
-    name: Build unsigned iOS IPA
+    name: Build unsigned Lunarium IPA
     runs-on: macos-26
 
     steps:
@@ -33,14 +32,11 @@ jobs:
         run: |
           test -d Nocturne.xcodeproj
           test -f Nocturne.xcodeproj/xcshareddata/xcschemes/Nocturne.xcscheme
+          xcodebuild -list -project Nocturne.xcodeproj
 
-          xcodebuild -list \
-            -project Nocturne.xcodeproj
-
-      - name: Build application
+      - name: Build Lunarium
         run: |
           set -o pipefail
-
           xcodebuild \
             -project Nocturne.xcodeproj \
             -scheme Nocturne \
@@ -51,38 +47,24 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log"
 
-      - name: Package unsigned IPA
+      - name: Package Lunarium IPA
         run: |
           set -e
-
           APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/Nocturne.app"
-
-          if [ ! -d "$APP_PATH" ]; then
-            echo "ERROR: Nocturne.app was not generated."
-            exit 1
-          fi
-
-          /usr/libexec/PlistBuddy \
-            -c "Print :CFBundleIdentifier" \
-            "$APP_PATH/Info.plist"
+          test -d "$APP_PATH"
 
           mkdir -p "$RUNNER_TEMP/IPA/Payload"
-
-          cp -R "$APP_PATH" "$RUNNER_TEMP/IPA/Payload/"
+          cp -R "$APP_PATH" "$RUNNER_TEMP/IPA/Payload/Lunarium.app"
 
           cd "$RUNNER_TEMP/IPA"
+          ditto -c -k --sequesterRsrc Payload "$GITHUB_WORKSPACE/Lunarium-unsigned.ipa"
+          unzip -t "$GITHUB_WORKSPACE/Lunarium-unsigned.ipa"
 
-          ditto -c -k --sequesterRsrc \
-            Payload \
-            "$GITHUB_WORKSPACE/Nocturne-unsigned.ipa"
-
-          unzip -t "$GITHUB_WORKSPACE/Nocturne-unsigned.ipa"
-
-      - name: Upload IPA
+      - name: Upload Lunarium IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Nocturne-unsigned-ipa
-          path: Nocturne-unsigned.ipa
+          name: Lunarium-unsigned-ipa
+          path: Lunarium-unsigned.ipa
           if-no-files-found: error
           retention-days: 14
 
@@ -90,7 +72,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Nocturne-build-diagnostics
+          name: Lunarium-build-diagnostics
           path: ${{ runner.temp }}/xcodebuild.log
           if-no-files-found: ignore
           retention-days: 7
