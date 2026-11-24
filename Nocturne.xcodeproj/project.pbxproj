@@ -1,0 +1,38 @@
+// !$*UTF8*$!
+{
+ archiveVersion = 1;
+ classes = {};
+ objectVersion = 56;
+ objects = {
+  B00000000000000000000001 = {isa = PBXBuildFile; fileRef = B00000000000000000000011; };
+  B00000000000000000000002 = {isa = PBXBuildFile; fileRef = B00000000000000000000012; };
+  B00000000000000000000003 = {isa = PBXBuildFile; fileRef = B00000000000000000000014; };
+  B00000000000000000000004 = {isa = PBXBuildFile; fileRef = B00000000000000000000015; };
+  B00000000000000000000005 = {isa = PBXBuildFile; fileRef = B00000000000000000000016; };
+  B00000000000000000000006 = {isa = PBXBuildFile; fileRef = B00000000000000000000018; };
+  B00000000000000000000011 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NocturneApp.swift; sourceTree = "<group>"; };
+  B00000000000000000000012 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+  B00000000000000000000013 = {isa = PBXFileReference; explicitFileType = wrapper.application; path = Nocturne.app; sourceTree = BUILT_PRODUCTS_DIR; };
+  B00000000000000000000014 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Respring.swift; sourceTree = "<group>"; };
+  B00000000000000000000015 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+  B00000000000000000000016 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = entry_isurf_uaf.m; sourceTree = "<group>"; };
+  B00000000000000000000017 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = exploit_bridge.h; sourceTree = "<group>"; };
+  B00000000000000000000018 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Nocturne-Bridging-Header.h"; sourceTree = "<group>"; };
+  B00000000000000000000019 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+  B00000000000000000000007 = {isa = PBXBuildFile; fileRef = B00000000000000000000019; };
+  B00000000000000000000023 = {isa = PBXGroup; children = (B00000000000000000000016,B00000000000000000000017,); path = Exploit; sourceTree = "<group>"; };
+  B00000000000000000000021 = {isa = PBXGroup; children = (B00000000000000000000018,B00000000000000000000011,B00000000000000000000012,B00000000000000000000014,B00000000000000000000015,B00000000000000000000023,); path = Nocturne; sourceTree = "<group>"; };
+  B00000000000000000000024 = {isa = PBXGroup; children = (B00000000000000000000019,); name = Frameworks; sourceTree = "<group>"; };
+  B00000000000000000000022 = {isa = PBXGroup; children = (B00000000000000000000021,B00000000000000000000024,B00000000000000000000013,); sourceTree = "<group>"; };
+  B00000000000000000000030 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000007,); runOnlyForDeploymentPostprocessing = 0; };
+  B00000000000000000000031 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000001,B00000000000000000000002,B00000000000000000000003,B00000000000000000000005,); runOnlyForDeploymentPostprocessing = 0; };
+  B00000000000000000000032 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000004,); runOnlyForDeploymentPostprocessing = 0; };
+  B00000000000000000000041 = {isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000061; buildPhases = (B00000000000000000000031,B00000000000000000000030,B00000000000000000000032,); buildRules = (); dependencies = (); name = Nocturne; productName = Nocturne; productReference = B00000000000000000000013; productType = "com.apple.product-type.application"; };
+  B00000000000000000000051 = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastUpgradeCheck = 1600;}; buildConfigurationList = B00000000000000000000062; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = B00000000000000000000022; productRefGroup = B00000000000000000000022; projectDirPath = ""; projectRoot = ""; targets = (B00000000000000000000041,); };
+  B00000000000000000000071 = {isa = XCBuildConfiguration; buildSettings = {IPHONEOS_DEPLOYMENT_TARGET = 16.0; SDKROOT = iphoneos; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; PRODUCT_BUNDLE_IDENTIFIER = com.nocturne.research; PRODUCT_NAME = Nocturne; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_CFBundleDisplayName = Lunarium; CODE_SIGNING_ALLOWED = NO; SWIFT_OBJC_BRIDGING_HEADER = "Nocturne/Nocturne-Bridging-Header.h"; CLANG_ENABLE_MODULES = YES; OTHER_LDFLAGS = "-framework IOKit";}; name = Release;};
+  B00000000000000000000072 = {isa = XCBuildConfiguration; buildSettings = {IPHONEOS_DEPLOYMENT_TARGET = 16.0; SDKROOT = iphoneos; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; PRODUCT_BUNDLE_IDENTIFIER = com.nocturne.research; PRODUCT_NAME = Nocturne; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_CFBundleDisplayName = Lunarium; CODE_SIGNING_ALLOWED = NO; SWIFT_OBJC_BRIDGING_HEADER = "Nocturne/Nocturne-Bridging-Header.h"; CLANG_ENABLE_MODULES = YES; OTHER_LDFLAGS = "-framework IOKit";}; name = Debug;};
+  B00000000000000000000061 = {isa = XCConfigurationList; buildConfigurations = (B00000000000000000000071,B00000000000000000000072,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;};
+  B00000000000000000000062 = {isa = XCConfigurationList; buildConfigurations = (B00000000000000000000071,B00000000000000000000072,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;};
+ };
+ rootObject = B00000000000000000000051;
+}
